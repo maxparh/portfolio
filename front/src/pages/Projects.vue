@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-full mx-auto px-6 md:px-60 py-10 min-h-screen bg-white font-sans">
+  <div class="max-w-full mx-auto px-6 md:px-60 py-10 min-h-screen font-sans">
     
     <div class="flex justify-between items-end mb-12">
       <div>
@@ -22,7 +22,7 @@
         <div class="flex justify-center mb-6">
           <div class="w-20 h-20 rounded-3xl bg-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-500 overflow-hidden border border-slate-100">
             <template v-if="project.logo">
-              <img :src="project.logo" :alt="project.title" class="w-full h-full object-cover" />
+              <img :src="project.logo" :alt="project.title" class="w-full h-full object-cover p-[16px] rounded-3xl" />
             </template>
             <template v-else>
               <span class="text-2xl font-bold text-slate-200 select-none font-mono">
@@ -75,37 +75,46 @@ interface Project {
 const projects = ref<Project[]>([
   {
     id: 1,
-    title: 'Bot Engine',
-    category: 'Backend / Python',
-    logo: '', 
-    description: 'Система автоматизации сложных сценариев для Telegram ботов на основе стейт-машины.',
-    techStack: ['Python', 'Redis', 'Docker'],
+    title: 'cogito_AI',
+    category: 'Python / LLM',
+    logo: new URL('@/assets/cogito_logo.png', import.meta.url).href, 
+    description: 'ИИ-ассистент помощник для студентов.',
+    techStack: ['Python', 'Ollama', 'Docker'],
     link: '#'
   },
   {
     id: 2,
-    title: 'Auth Microservice',
-    category: 'Backend / Golang',
-    logo: '', 
-    description: 'Высоконагруженный сервис авторизации с использованием JWT и поддержкой OAuth2.',
-    techStack: ['Go', 'PostgreSQL', 'gRPC'],
+    title: 'Green Way',
+    category: 'Design / Style-guide / Figma',
+    logo: new URL('@/assets/green_way_logo.png', import.meta.url).href, 
+    description: 'Сервис по разумному потреблению и передвижению по городу.',
+    techStack: ['Figma', 'Promo-site'],
     link: '#'
   },
   {
     id: 3,
-    title: 'Creative Canvas',
-    category: 'Frontend / Vue',
-    logo: '', 
-    description: 'Интерактивный графический редактор для работы с векторной графикой в браузере.',
-    techStack: ['Vue 3', 'TypeScript', 'Pinia'],
+    title: 'Linqs',
+    category: 'Full-stack',
+    logo: new URL('@/assets/linqs_logo.png', import.meta.url).href, 
+    description: 'Сервис по сокращению ссылок',
+    techStack: ['Vue 3', 'TypeScript', 'GOlang', 'PostgreSQL'],
     link: '#'
   },
   {
     id: 4,
-    title: 'Logger Suite',
+    title: 'Izhora-agency',
+    category: 'Team lead / DevOps',
+    logo: new URL('@/assets/izhora_logo.png', import.meta.url).href, 
+    description: 'Сайт для агенства недвижимости с интеграцией системы обработки заявок.',
+    techStack: ['Vue 3', 'Python', 'FastAPI', 'PostgreSQL', 'Docker', 'CI/CD'],
+    link: '#'
+  },
+  {
+    id: 5,
+    title: 'Edelhaus',
     category: 'Middleware / Node',
-    logo: '', 
-    description: 'Пакет для централизованного сбора логов и мониторинга производительности систем.',
+    logo: new URL('@/assets/edelhaus_logo.png', import.meta.url).href, 
+    description: 'CRM система для учета клиентов и заявок для компании по продаже дизайнерской мебели.',
     techStack: ['Node.js', 'Elasticsearch', 'Kibana'],
     link: '#'
   }

@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
-.bg-main {
-  background-image: url('@/assets/background_img.png');
+body {
+  @apply bg-white;
+  /* Создаем сетку 50x50px с прозрачностью 5% */
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-attachment: fixed; /* Сетка стоит на месте при скролле */
 }

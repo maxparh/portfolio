@@ -40,24 +40,30 @@ const toggleLike = () => {
 </script>
 
 <template>
-  <div class="bg-slate-50/50 backdrop-blur-sm border border-slate-200 p-6 rounded-2xl flex flex-col justify-between hover:shadow-lg transition-all duration-300">
+  <div class="bg-[#F8FAFC] border border-slate-200 p-8 rounded-[2rem] shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-lg">
+    
     <div>
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold shadow-sm">
-          M
+      <div class="flex items-center gap-4 mb-6">
+        
+        <div class="font-mono text-[18px] font-bold uppercase w-12 h-12 rounded-full bg-[#344054] flex items-center justify-center text-white shadow-inner shrink-0">
+          {{ post.author[0] }}
         </div>
-        <span class="font-medium text-slate-700 tracking-tight">{{ post.author }}</span>
+        
+        <span class="font-mono text-slate-700 text-[18px] font-bold tracking-tight">
+          {{ post.author }}
+        </span>
       </div>
-      <p class="text-slate-600 leading-relaxed text-sm whitespace-pre-line">
+
+      <p class="text-slate-600 leading-relaxed text-sm whitespace-pre-line font-mono px-1">
         {{ post.content }}
       </p>
     </div>
     
-    <div class="flex justify-between items-center mt-6 text-slate-400 text-xs font-mono">
+    <div class="flex justify-between items-center mt-6 text-slate-400 text-xs font-mono border-t border-slate-200/60 pt-4 px-1">
       <button 
         @click="toggleLike"
         class="flex items-center gap-2 transition-colors duration-200 group"
-        :class="isLiked ? 'text-rose-500' : 'hover:text-indigo-500'"
+        :class="isLiked ? 'text-rose-500' : 'hover:text-[#63CDDA]'"
       >
         <span class="text-lg" :class="{'font-bold animate-bounce-short': isLiked}">
           {{ isLiked ? '▲' : '^' }}

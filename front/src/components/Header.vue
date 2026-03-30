@@ -22,7 +22,13 @@
       >
         Проекты
       </RouterLink>
-      <a class="hover:opacity-70 transition" href="#">Навыки</a>
+      <RouterLink 
+        to="/skills" 
+        class="hover:opacity-70 transition border-b-2 border-transparent"
+        active-class="!border-black"
+      >
+        Навыки
+      </RouterLink>
       <RouterLink 
         to="/blog" 
         class="hover:opacity-70 transition border-b-2 border-transparent"

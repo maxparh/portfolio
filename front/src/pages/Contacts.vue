@@ -91,7 +91,7 @@ const faqs = [
 </script>
 
 <template>
-  <div class="max-w-full mx-auto px-6 md:px-60 py-10 min-h-screen font-sans text-slate-900 bg-white">
+  <div class="max-w-full mx-auto px-6 md:px-60 py-10 min-h-screen font-sans text-slate-900">
     
     <div class="flex justify-between items-end mb-12">
       <div>
@@ -114,33 +114,42 @@ const faqs = [
             <span class="font-mono text-slate-700 text-[18px] font-bold tracking-tight">maxparh.dev</span>
           </div>
           <div class="flex gap-4 pt-6 border-t border-slate-200/60">
-            <a href="https://github.com/maxparh " class="hover:opacity-70 transition-opacity"><img src="@/assets/telegram.svg" class="w-8 h-8" alt="TG"></a>
-            <a href="https://github.com/maxparh " class="hover:opacity-70 transition-opacity"><img src="@/assets/github.svg" class="w-8 h-8" alt="GH"></a>
-            <a href="https://gitlab.com/maxparh " class="hover:opacity-70 transition-opacity"><img src="@/assets/gitlab.svg" class="w-8 h-8" alt="GL"></a>
-            <a href="https://www.linkedin.com/in/maksim-parkhomenko-4465003bb/ " class="hover:opacity-70 transition-opacity"><img src="@/assets/linkedin.svg" class="w-8 h-8" alt="IN"></a>
+            <a href="https://github.com/maxparh" class="hover:opacity-70 transition-opacity"><img src="@/assets/telegram.svg" class="w-8 h-8" alt="TG"></a>
+            <a href="https://github.com/maxparh" class="hover:opacity-70 transition-opacity"><img src="@/assets/github.svg" class="w-8 h-8" alt="GH"></a>
+            <a href="https://gitlab.com/maxparh" class="hover:opacity-70 transition-opacity"><img src="@/assets/gitlab.svg" class="w-8 h-8" alt="GL"></a>
+            <a href="https://www.linkedin.com/in/maksim-parkhomenko-4465003bb/" class="hover:opacity-70 transition-opacity"><img src="@/assets/linkedin.svg" class="w-8 h-8" alt="IN"></a>
           </div>
         </div>
 
         <form @submit.prevent="sendMessage" class="bg-[#F8FAFC] border border-slate-200 p-8 rounded-[2rem] shadow-sm gap-6 flex flex-col">
           <p class="text-slate-700 text-[18px] font-bold uppercase tracking-[0.2em] font-mono">Написать сообщение</p>
           
-          <input v-model="form.name" type="text" placeholder="Ваше имя..." class="w-full bg-[#F8FAFC] border border-slate-200 p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#63CDDA]/20 focus:border-[#63CDDA] transition font-mono text-sm" />
+          <input v-model="form.name" type="text" placeholder="Ваше имя..." 
+            class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition font-mono text-sm" />
           
-          <input v-model="form.contact" type="text" placeholder="Способ связи (TG, Email...)" class="w-full bg-[#F8FAFC] border border-slate-200 p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#63CDDA]/20 focus:border-[#63CDDA] transition font-mono text-sm" />
+          <input v-model="form.contact" type="text" placeholder="Способ связи (telegram, Email...)" 
+            class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition font-mono text-sm" />
           
           <div class="relative">
-            <select v-model="form.type" class="w-full bg-[#F8FAFC] border border-slate-200 p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#63CDDA]/20 focus:border-[#63CDDA] transition appearance-none font-mono text-sm cursor-pointer">
+            <select v-model="form.type" 
+              class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition appearance-none font-mono text-sm cursor-pointer">
               <option>Техническая задача</option>
               <option>Backend-модуль</option>
               <option>Консультация</option>
             </select>
-            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">↓</div>
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
           </div>
 
-          <textarea v-model="form.message" placeholder="Ваше сообщение..." rows="5" class="w-full bg-[#F8FAFC] border border-slate-200 p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#63CDDA]/20 focus:border-[#63CDDA] transition resize-none font-mono text-sm"></textarea>
+          <textarea v-model="form.message" placeholder="Ваше сообщение..." rows="5" 
+            class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition resize-none font-mono text-sm"></textarea>
           
           <div class="flex justify-start pt-4">
-            <button type="submit" :disabled="isSending" class="w-full bg-[#344054] text-white py-4 rounded-xl font-bold hover:bg-slate-900 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-slate-200">
+            <button type="submit" :disabled="isSending" 
+              class="w-full bg-[#344054] text-white py-4 rounded-xl font-bold hover:bg-slate-900 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-slate-200 uppercase tracking-widest text-sm">
               {{ isSending ? 'ОТПРАВКА...' : 'ОТПРАВИТЬ' }}
             </button>
           </div>
@@ -168,17 +177,17 @@ const faqs = [
             <button 
               @click="handleSubscribe"
               :disabled="isSubscribing"
-              class="bg-[#63CDDA] text-white px-6 py-4 rounded-xl text-sm font-bold hover:bg-[#57b9c5] transition-all active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest"
+              class="w-full bg-[#63CDDA] text-white py-4 rounded-xl font-bold hover:bg-[#57b9c5] transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-slate-200 uppercase tracking-widest text-sm"
             >
               {{ isSubscribing ? '...' : 'Подписаться' }}
             </button>
           </div>
         </div>
 
-        <div class="text-slate-800 text-sm leading-relaxed space-y-6 max-w-prose font-mono px-2">
-          <p>Вы можете оставить здесь сообщение, если хотите поделиться идеей, уточнить детали проекта или просто передать небольшое текстовое обращение. 
+        <div class="text-slate-800 leading-relaxed space-y-6 max-w-prose font-mono px-2 text-[24px]] font-bold">
+          <p>Вы можете оставить здесь сообщение, если хотите поделиться идеей, уточнить детали проекта или просто передать небольшое текстовое обращение. <br> <br>
 
-Иногда такие сообщения помогают лучше понять контекст, уточнить технические требования или просто поддерживать связь. <br>
+Иногда такие сообщения помогают лучше понять контекст, уточнить технические требования или просто поддерживать связь.
 Все обращения обрабатываются вручную, поэтому ответ может занять некоторое время, но каждое сообщение остаётся в системе и не теряется.</p>
           <p class="text-slate-500">/ end of contact page</p>
         </div>

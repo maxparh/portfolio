@@ -1,16 +1,10 @@
 <script setup lang="ts">
 import Terminal from "@/components/Terminal.vue"
-import bg from "@/assets/background_img.png"
+
 </script>
 
 <template>
-  <div class="relative w-full min-h-screen overflow-hidden">
-<!-- 
-    <img
-      :src = "bg"
-      alt="background"
-      class="absolute inset-0 w-full h-full object-cover -z-10"
-    /> -->
+  <div class="max-w-full mx-auto px-6 md:px-20 py-10 min-h-screen">
 
     <section class="w-full flex justify-between items-center gap-[625px] px-40 pt-32">
 
@@ -20,13 +14,23 @@ import bg from "@/assets/background_img.png"
         <p class="text-2xl opacity-90 mt-3">И я DevOps, SRE, Full-stack</p>
 
         <div class="flex gap-6 mt-10">
-          <button class="bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:opacity-80 transition">
-            Проекты
-          </button>
+          <RouterLink to="/projects" custom v-slot="{ navigate }">
+            <button 
+              @click="navigate"
+              class="bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:opacity-80 transition cursor-pointer"
+            >
+              Проекты
+            </button>
+          </RouterLink>
 
-          <button class="border border-black px-8 py-3 rounded-lg text-lg hover:bg-black hover:text-white transition">
-            Навыки
-          </button>
+          <RouterLink to="/skills" custom v-slot="{ navigate }">
+            <button 
+              @click="navigate"
+              class="border-2 border-black px-8 py-3 rounded-lg text-lg hover:bg-black hover:text-white transition cursor-pointer font-semibold"
+            >
+              Навыки
+            </button>
+          </RouterLink>
         </div>
       </div>
 
