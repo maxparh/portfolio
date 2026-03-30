@@ -6,7 +6,7 @@ import Footer from "@/components/Footer.vue"
 <template>
   <div class="min-h-screen bg-white text-black">
     <Header />
-    <main class="pt-20">
+    <main class="pt-5">
       <RouterView />
     </main>
     <Footer />

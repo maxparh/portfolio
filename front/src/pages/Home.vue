@@ -5,12 +5,12 @@ import bg from "@/assets/background_img.png"
 
 <template>
   <div class="relative w-full min-h-screen overflow-hidden">
-
+<!-- 
     <img
       :src = "bg"
       alt="background"
       class="absolute inset-0 w-full h-full object-cover -z-10"
-    />
+    /> -->
 
     <section class="w-full flex justify-between items-center gap-[625px] px-40 pt-32">
 

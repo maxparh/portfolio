@@ -9,6 +9,19 @@ const router = createRouter({
       name: 'home',
       component: Home,
     },
+    {
+      path: '/blog',
+      name: 'blog',
+      component: () => import('@/pages/Blog.vue') // Ленивая загрузка
+    },
+    { path: '/contacts', 
+      name: 'contacts', 
+      component: () => import('@/pages/Contacts.vue') 
+    },
+    { path: '/projects', 
+      name: 'projects', 
+      component: () => import('@/pages/Projects.vue') 
+    },
   ],
 })
 
