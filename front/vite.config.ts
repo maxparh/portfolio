@@ -6,7 +6,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig({
   // base: './' делает пути относительными, чтобы билд работал везде
-  base: './', 
+  base: '/', 
   plugins: [
     vue(),
     vueJsx(),
