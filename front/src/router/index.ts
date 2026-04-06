@@ -26,6 +26,12 @@ const router = createRouter({
       name: 'skills', 
       component: () => import('@/pages/Skills.vue') 
     },
+    {
+      path: '/project/:slug',
+      name: 'ProjectDetail',
+      component: () => import('@/pages/ProjectDetail.vue'), // или @/views/
+      props: true
+    },
   ],
 })
 

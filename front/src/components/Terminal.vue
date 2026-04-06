@@ -6,11 +6,10 @@
         <span class="text-slate-500">|</span>
         <span>maxparh.dev</span>
       </div>
-
       <div class="flex gap-2">
-        <div class="w-4 h-4 rounded-full shadow-inner shadow-black/20 bg-[#63CDDA]"></div>
-        <div class="w-4 h-4 rounded-full shadow-inner shadow-black/20 bg-[#F5CD79]"></div>
-        <div class="w-4 h-4 rounded-full shadow-inner shadow-black/20 bg-[#FF0000]"></div>
+        <div class="w-4 h-4 rounded-full bg-[#63CDDA]"></div>
+        <div class="w-4 h-4 rounded-full bg-[#F5CD79]"></div>
+        <div class="w-4 h-4 rounded-full bg-[#FF0000]"></div>
       </div>
     </div>
 
@@ -43,39 +42,19 @@
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
+import { projectsData } from '@/data/projects' // Твой новый массив
 
-// --- ИНТЕРФЕЙСЫ ---
-interface Project {
-  name: string
-  type: 'py' | 'rg' | 'md' | 'vue'
-  desc: string
-  link: string
-}
-
-// --- ДАННЫЕ (можно вынести в отдельный .ts файл) ---
-const projectsData: Project[] = [
-  { name: 'cogito_AI', type: 'py', desc: 'ИИ-ассистент для студентов', link: '#' },
-  { name: 'Green Way', type: 'vue', desc: 'Сервис разумного потребления', link: '#' },
-  { name: 'Linqs', type: 'rg', desc: 'Сокращение ссылок (Go)', link: '#' },
-  { name: 'Izhora-agency', type: 'py', desc: 'CRM для недвижимости', link: '#' },
-  { name: 'Edelhaus', type: 'md', desc: 'Middleware/Node CRM', link: '#' },
-]
-
-// --- СОСТОЯНИЕ ---
+const router = useRouter()
 const history = ref<string[]>([
   'Все права защищены. Максим Пархоменко',
-  'Авторизация не требуется: начните вводить команду.',
-  'Список команд: <span class="text-indigo-400">--help</span>'
+  'Введите <span class="text-indigo-400">--help</span> для списка команд.'
 ])
 
 const currentInput = ref('')
 const terminalBody = ref<HTMLElement | null>(null)
-
-// Для навигации по стрелкам (как в bash)
 const commandHistory = ref<string[]>([])
 const historyIndex = ref(-1)
-
-// --- МЕТОДЫ ---
 
 const addToHistory = (text: string) => {
   history.value.push(text)
@@ -90,7 +69,6 @@ const processCommand = (rawInput: string) => {
   const input = rawInput.trim()
   if (!input) return
 
-  // Сохраняем в историю команд для стрелок
   commandHistory.value.push(rawInput)
   historyIndex.value = -1
 
@@ -104,44 +82,55 @@ const processCommand = (rawInput: string) => {
     case '--help':
       addToHistory(`
         <div class="mt-2 text-yellow-400 font-bold underline">ДОСТУПНЫЕ КОМАНДЫ:</div>
-        <div class="flex gap-4 mt-1"><span class="text-indigo-400 min-w-[80px]">projects</span><span>— список работ</span></div>
-        <div class="text-slate-500 text-xs ml-4 mt-1 mb-1 italic">Ключи:</div>
-        <div class="ml-6 text-sm grid grid-cols-1 gap-0.5">
-          <div><span class="text-indigo-400">-a</span> — все проекты</div>
-          <div><span class="text-indigo-400">-py</span> — Python / LLM</div>
-          <div><span class="text-indigo-400">-rg</span> — Golang</div>
-          <div><span class="text-indigo-400">-vue</span> — Frontend</div>
-          <div><span class="text-indigo-400">-p [имя]</span> — поиск</div>
+        <div class="flex gap-4 mt-1"><span class="text-indigo-400 min-w-[100px]">projects</span><span>— список работ</span></div>
+        <div class="ml-6 text-sm grid grid-cols-1 gap-0.5 text-slate-400">
+          <div><span class="text-indigo-300">-a</span> : показать всё</div>
+          <div><span class="text-indigo-300">-py, -vue, -rg, -md</span> : фильтр по типу</div>
+          <div><span class="text-indigo-300">-p [имя]</span> : поиск проекта</div>
         </div>
-        <div class="flex gap-4 mt-2"><span class="text-yellow-400 min-w-[80px]">clear</span><span>— очистить экран</span></div>
+        <div class="flex gap-4 mt-2"><span class="text-indigo-400 min-w-[100px]">open [slug]</span><span>— открыть страницу проекта</span></div>
+        <div class="flex gap-4 mt-1"><span class="text-yellow-400 min-w-[100px]">clear</span><span>— очистить терминал</span></div>
       `)
       break
 
     case 'projects':
       const flag = args[0]?.toLowerCase()
       
+      // Логика фильтрации
       if (!flag || flag === '-a') {
         projectsData.forEach(p => {
-          addToHistory(`[<span class="text-indigo-300">${p.type.toUpperCase()}</span>] <a href="${p.link}" class="hover:underline text-white font-bold">${p.name}</a> — ${p.desc}`)
+          addToHistory(`[<span class="text-indigo-300">${p.type.toUpperCase()}</span>] <a href="/project/${p.slug}" class="term-link">${p.title}</a> — ${p.description}`)
         })
       } 
       else if (flag === '-p') {
-        const searchName = args.slice(1).join(' ').toLowerCase()
-        const found = projectsData.find(p => p.name.toLowerCase().includes(searchName))
-        if (found && searchName) {
-          addToHistory(`Найдено: <span class="text-green-400">${found.name}</span> — ${found.desc}`)
+        const query = args.slice(1).join(' ').toLowerCase()
+        const found = projectsData.find(p => p.title.toLowerCase().includes(query))
+        if (found && query) {
+          addToHistory(`Найдено: <a href="/project/${found.slug}" class="term-link">${found.title}</a> — ${found.description}`)
         } else {
-          addToHistory(`<span class="text-red-400">Проект "${searchName || '...'}" не найден.</span>`)
+          addToHistory(`<span class="text-red-400">Проект "${query || '...'}" не найден.</span>`)
         }
       } 
       else {
-        const typeFilter = flag.replace('-', '') as Project['type']
-        const filtered = projectsData.filter(p => p.type === typeFilter)
+        // Фильтр по типу (-py, -vue...)
+        const typeKey = flag.replace('-', '')
+        const filtered = projectsData.filter(p => p.type === typeKey)
         if (filtered.length > 0) {
-          filtered.forEach(p => addToHistory(`<span class="text-indigo-400">-></span> ${p.name}: ${p.desc}`))
+          filtered.forEach(p => addToHistory(`[${p.type.toUpperCase()}] <a href="/project/${p.slug}" class="term-link">${p.title}</a>`))
         } else {
-          addToHistory(`<span class="text-red-400">Тип "${flag}" не найден.</span>`)
+          addToHistory(`<span class="text-red-400">Флаг "${flag}" не распознан.</span>`)
         }
+      }
+      break
+
+    case 'open':
+      const slug = args[0]
+      const projectExists = projectsData.find(p => p.slug === slug)
+      if (projectExists) {
+        addToHistory(`<span class="text-green-400">Переход к ${slug}...</span>`)
+        setTimeout(() => router.push(`/project/${slug}`), 500)
+      } else {
+        addToHistory(`<span class="text-red-400">Slug "${slug}" не найден. Используйте projects -a чтобы увидеть список.</span>`)
       }
       break
 
@@ -150,7 +139,7 @@ const processCommand = (rawInput: string) => {
       break
 
     default:
-      addToHistory(`Команда не найдена: <span class="text-red-500">${command}</span>. Используйте <span class="text-indigo-400">--help</span>`)
+      addToHistory(`Команда не найдена: <span class="text-red-500">${command}</span>.`)
   }
 }
 
@@ -159,48 +148,51 @@ const handleEnter = () => {
   currentInput.value = ''
 }
 
-// Навигация по истории команд (стрелки вверх/вниз)
 const navigateHistory = (direction: 'up' | 'down') => {
   if (commandHistory.value.length === 0) return
-
   if (direction === 'up') {
     if (historyIndex.value === -1) historyIndex.value = commandHistory.value.length - 1
     else if (historyIndex.value > 0) historyIndex.value--
   } else {
-    if (historyIndex.value === -1) return
-    if (historyIndex.value < commandHistory.value.length - 1) historyIndex.value++
-    else {
-      historyIndex.value = -1
-      currentInput.value = ''
-      return
-    }
+    if (historyIndex.value !== -1 && historyIndex.value < commandHistory.value.length - 1) historyIndex.value++
+    else { historyIndex.value = -1; currentInput.value = ''; return }
   }
   currentInput.value = commandHistory.value[historyIndex.value]
 }
 
-const focusInput = () => {
-  document.getElementById('term-input')?.focus()
-}
+const focusInput = () => document.getElementById('term-input')?.focus()
 
 onMounted(() => {
   focusInput()
+  // Перехват кликов для Router
+  terminalBody.value?.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement
+    if (target.tagName === 'A') {
+      const href = target.getAttribute('href')
+      if (href?.startsWith('/')) {
+        e.preventDefault()
+        router.push(href)
+      }
+    }
+  })
 })
 </script>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+input:focus { outline: none; }
+
+/* Используем :deep для стилизации v-html */
+:deep(.term-link) {
+  color: #818CF8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  font-weight: bold;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 10px;
-}
-.text-green-400 {
-  text-shadow: 0 0 5px rgba(74, 222, 128, 0.2);
-}
-/* Убираем стандартное выделение при клике в некоторых браузерах */
-input:focus {
-  ring: none;
-  box-shadow: none;
+:deep(.term-link:hover) {
+  color: #63CDDA;
 }
 </style>

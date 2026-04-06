@@ -36,8 +36,8 @@ const login = () => {
       </div>
     </div>
     
-    <div class="columns-1 md:columns-2 gap-8 space-y-8">
-      <div v-for="post in posts" :key="post.id" class="break-inside-avoid">
+    <div class="flex flex-wrap -mx-4">
+      <div v-for="post in posts" :key="post.id" class="w-full md:w-1/2 px-4 mb-8">
         <BlogCard :post="post" />
       </div>
     </div>
