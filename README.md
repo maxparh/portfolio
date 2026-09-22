@@ -1,3 +1,3 @@
 ﻿# Сайт-портфолио maxparh.dev
 
- [Ссылка на сайт](maxparh.site)
+ [Ссылка на сайт](https://maxparh.site/)
