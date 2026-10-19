@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import TurnstileWidget from '@/components/TurnstileWidget.vue'
 
 const form = ref({
   name: '',
@@ -12,74 +13,51 @@ const subscribeContact = ref('') // Поле для подписки
 const isSending = ref(false)
 const isSubscribing = ref(false)
 
-// --- НАСТРОЙКИ ТЕЛЕГРАМ ---
-const BOT_TOKEN = '8619564100:AAGDQMH935ZAXwN6N-aizwltgGErehtAepw'
-const CHAT_ID = '338735156'
+const messageToken = ref('')
+const subscribeToken = ref('')
+const messageWidget = ref<InstanceType<typeof TurnstileWidget>>()
+const subscribeWidget = ref<InstanceType<typeof TurnstileWidget>>()
 
-// Общая функция для отправки запроса к API Telegram
-const sendToTelegram = async (text: string) => {
-  return await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+const submit = async (data: Record<string, unknown>) => {
+  const response = await fetch('/api/contact', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: CHAT_ID,
-      text: text,
-      parse_mode: 'HTML'
-    })
+    body: JSON.stringify(data),
+    signal: AbortSignal.timeout(25000),
   })
+  const result = await response.json()
+  if (!response.ok || result.ok !== true) {
+    throw new Error(result.error || 'Не удалось отправить. Попробуйте позже.')
+  }
 }
 
-// Отправка основной формы
 const sendMessage = async () => {
-  if (!form.value.message || isSending.value) return
+  if (!form.value.message.trim() || !messageToken.value || isSending.value) return
   isSending.value = true
-
-  const text = `
-<b>🚀 Новая заявка!</b>
-<b>От:</b> ${form.value.name || 'Аноним'}
-<b>Связь:</b> ${form.value.contact || 'Не указана'}
-<b>Тип:</b> ${form.value.type}
-<b>Сообщение:</b>
-${form.value.message}
-  `.trim()
-
   try {
-    const response = await sendToTelegram(text)
-    if (response.ok) {
-      alert('Сообщение успешно отправлено!')
-      form.value = { name: '', contact: '', type: 'Техническая задача', message: '' }
-    } else { throw new Error() }
-  } catch (e) {
-    alert('Ошибка при отправке.')
+    await submit({ action: 'message', ...form.value, token: messageToken.value })
+    alert('Сообщение успешно отправлено!')
+    form.value = { name: '', contact: '', type: 'Техническая задача', message: '' }
+  } catch (error) {
+    alert(error instanceof Error ? error.message : 'Ошибка при отправке.')
   } finally {
     isSending.value = false
+    messageWidget.value?.reset()
   }
 }
 
-// Функционал подписки
 const handleSubscribe = async () => {
-  if (!subscribeContact.value || isSubscribing.value) {
-    alert('Введите контактные данные')
-    return
-  }
-
+  if (!subscribeContact.value.trim() || !subscribeToken.value || isSubscribing.value) return
   isSubscribing.value = true
-  const text = `
-<b>🔔 Запрос на подписку!</b>
-<b>Контакт:</b> ${subscribeContact.value}
-<b>Действие:</b> Пользователь хочет получать обновления.
-  `.trim()
-
   try {
-    const response = await sendToTelegram(text)
-    if (response.ok) {
-      alert('Вы успешно подписаны на обновления!')
-      subscribeContact.value = ''
-    } else { throw new Error() }
-  } catch (e) {
-    alert('Не удалось оформить подписку. Попробуйте позже.')
+    await submit({ action: 'subscribe', contact: subscribeContact.value, token: subscribeToken.value })
+    alert('Запрос на подписку отправлен!')
+    subscribeContact.value = ''
+  } catch (error) {
+    alert(error instanceof Error ? error.message : 'Не удалось отправить запрос.')
   } finally {
     isSubscribing.value = false
+    subscribeWidget.value?.reset()
   }
 }
 
@@ -92,7 +70,7 @@ const faqs = [
 
 <template>
   <div class="max-w-full mx-auto px-6 md:px-60 py-10 min-h-screen font-sans text-slate-900">
-    
+
     <div class="flex justify-between items-end mb-12">
       <div>
         <h1 class="text-5xl font-bold font-mono text-slate-900 tracking-tighter">Контакты</h1>
@@ -123,15 +101,15 @@ const faqs = [
 
         <form @submit.prevent="sendMessage" class="bg-[#F8FAFC] border border-slate-200 p-8 rounded-[2rem] shadow-sm gap-6 flex flex-col">
           <p class="text-slate-700 text-[18px] font-bold uppercase tracking-[0.2em] font-mono">Написать сообщение</p>
-          
-          <input v-model="form.name" type="text" placeholder="Ваше имя..." 
+
+          <input v-model="form.name" maxlength="100" type="text" placeholder="Ваше имя..."
             class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition font-mono text-sm" />
-          
-          <input v-model="form.contact" type="text" placeholder="Способ связи (telegram, Email...)" 
+
+          <input v-model="form.contact" maxlength="200" type="text" placeholder="Способ связи (telegram, Email...)"
             class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition font-mono text-sm" />
-          
+
           <div class="relative">
-            <select v-model="form.type" 
+            <select v-model="form.type"
               class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition appearance-none font-mono text-sm cursor-pointer">
               <option>Техническая задача</option>
               <option>Backend-модуль</option>
@@ -144,11 +122,12 @@ const faqs = [
             </div>
           </div>
 
-          <textarea v-model="form.message" placeholder="Ваше сообщение..." rows="5" 
+          <textarea v-model="form.message" required maxlength="3000" placeholder="Ваше сообщение..." rows="5"
             class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition resize-none font-mono text-sm"></textarea>
-          
+
+          <TurnstileWidget ref="messageWidget" action="message" @token="messageToken = $event" />
           <div class="flex justify-start pt-4">
-            <button type="submit" :disabled="isSending" 
+            <button type="submit" :disabled="isSending || !messageToken"
               class="w-full bg-[#344054] text-white py-4 rounded-xl font-bold hover:bg-slate-900 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-slate-200 uppercase tracking-widest text-sm">
               {{ isSending ? 'ОТПРАВКА...' : 'ОТПРАВИТЬ' }}
             </button>
@@ -168,15 +147,16 @@ const faqs = [
             </div>
           </div>
           <div class="flex flex-col gap-3">
-            <input 
-              v-model="subscribeContact"
-              type="text" 
-              placeholder="Email или @username" 
-              class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition font-mono text-sm" 
+            <input
+              v-model="subscribeContact" maxlength="200"
+              type="text"
+              placeholder="Email или @username"
+              class="w-full bg-white border border-slate-200 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#63CDDA]/20 transition font-mono text-sm"
             />
-            <button 
+            <TurnstileWidget ref="subscribeWidget" action="subscribe" @token="subscribeToken = $event" />
+            <button
               @click="handleSubscribe"
-              :disabled="isSubscribing"
+              :disabled="isSubscribing || !subscribeToken || !subscribeContact.trim()"
               class="w-full bg-[#63CDDA] text-white py-4 rounded-xl font-bold hover:bg-[#57b9c5] transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-slate-200 uppercase tracking-widest text-sm"
             >
               {{ isSubscribing ? '...' : 'Подписаться' }}

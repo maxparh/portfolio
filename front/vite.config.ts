@@ -18,9 +18,9 @@ export default defineConfig({
     },
   },
   build: {
-    // '../site' выходит на уровень выше текущей папки проекта
-    outDir: '../site',
-    // Разрешаем Vite очищать папку, даже если она вне корня проекта
+    // Cloudflare Pages publishes this generated directory.
+    outDir: 'dist',
+    // Clean the previous generated build.
     emptyOutDir: true,
     // Настройка именования файлов без хешей
     rollupOptions: {

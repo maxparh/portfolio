@@ -73,7 +73,7 @@ const processCommand = (rawInput: string) => {
   historyIndex.value = -1
 
   const parts = input.split(/\s+/)
-  const command = parts[0].toLowerCase()
+  const command = (parts[0] ?? '').toLowerCase()
   const args = parts.slice(1)
 
   addToHistory(`<span class="text-green-400 font-bold">~$ > ${rawInput}</span>`)
@@ -157,7 +157,7 @@ const navigateHistory = (direction: 'up' | 'down') => {
     if (historyIndex.value !== -1 && historyIndex.value < commandHistory.value.length - 1) historyIndex.value++
     else { historyIndex.value = -1; currentInput.value = ''; return }
   }
-  currentInput.value = commandHistory.value[historyIndex.value]
+  currentInput.value = commandHistory.value[historyIndex.value] ?? ''
 }
 
 const focusInput = () => document.getElementById('term-input')?.focus()
