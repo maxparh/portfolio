@@ -1,8 +1,78 @@
-.dev.vars
-.dev.vars.*
-!.dev.vars.example
+# --- Зависимости ---
+node_modules/
+.pnp/
+.pnp.js
+
+# --- Сборка и артефакты ---
+dist/
+dist-server/
+dist-ssr/
+*.local
+
+# --- Тесты и покрытие ---
+coverage/
+*.lcov
+__screenshots__/
+
+# --- Логи ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- Кэши инструментов ---
+.vite/
+.cache/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+*.timestamp-*-*.mjs
+
+# --- Переменные окружения и секреты ---
+# Реальные значения храним только локально и в окружении сервера.
 .env
 .env.*
 !.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# --- Локальная документация по развёртыванию ---
+# Инструкция по запуску ведётся локально и не публикуется в репозитории.
+install.md
+CODEX_HANDOFF_PORTFOLIO.md
+.shots/
+.tmp-*
+*.log.err
+
+# --- Cloudflare / Wrangler (используются только локально) ---
 .wrangler/
-/site/
+wrangler.toml.local
+
+# --- IDE и редакторы ---
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# --- Системные файлы ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+desktop.ini
+$RECYCLE.BIN/
+.AppleDouble
+.LSOverride
+*.sw?

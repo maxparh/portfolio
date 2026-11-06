@@ -1,0 +1,5 @@
+# Запускается из docker compose. Домен берётся из переменной DOMAIN (.env).
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}

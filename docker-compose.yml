@@ -1,0 +1,71 @@
+# Запуск на VPS: скопировать папку проекта, создать .env, выполнить
+#   docker compose up -d --build
+#
+# Сайт будет доступен на порту SITE_PORT (по умолчанию 80).
+# Для HTTPS укажите DOMAIN и SITE_PORT=127.0.0.1:8080 в .env, включите профиль tls.
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
+    image: portfolio:latest
+    restart: unless-stopped
+    env_file:
+      # required: false — без .env стек всё равно поднимется, а /api/contact
+      # будет отвечать 503 «Отправка временно недоступна».
+      - path: .env
+        required: false
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+    expose:
+      - '3000'
+    # Порт публикуется напрямую, если HTTPS-прокси (caddy) не используется.
+    ports:
+      - '${SITE_PORT:-80}:3000'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # Автоматический HTTPS (Let's Encrypt). Включается профилем:
+  # В .env задайте SITE_PORT=127.0.0.1:8080, чтобы освободить порт 80 для Caddy.
+  #   docker compose --profile tls up -d --build
+  caddy:
+    profiles: ['tls']
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+volumes:
+  caddy_data:
+  caddy_config:

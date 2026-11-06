@@ -11,16 +11,17 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: front
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: front/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
-      - run: npm test
-      - run: npm run build
+      - name: Type check (Vue + API + Node server)
+        run: npm run type-check
+      - name: Tests (contact handler)
+        run: npm test
+      - name: Production build
+        run: npm run build

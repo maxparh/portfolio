@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/*
+ * Брейкпоинты под реальные устройства (mobile-first):
+ *   md  — 375px  мобильные
+ *   lg  — 884px  планшеты вертикально
+ *   xl  — 1280px ноутбуки и планшеты горизонтально
+ * Базовые (без префикса) стили рассчитаны на экраны уже 375px.
+ */
+@theme {
+  --breakpoint-md: 375px;
+  --breakpoint-lg: 884px;
+  --breakpoint-xl: 1280px;
+}
+
+html {
+  /* Узкие экраны не должны получать горизонтальный скролл из-за длинных строк. */
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-white;
+  /* Сетка 50x50px с прозрачностью 5%, закреплённая при скролле */
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-attachment: fixed;
+}
+
+/* Единая контейнерная ширина и отступы для всех страниц. */
+@utility page-shell {
+  @apply mx-auto w-full max-w-[1440px] px-4 md:px-6 lg:px-10 xl:px-16;
+}
+
+/* Заголовок раздела (h1 + подпись), адаптивный размер. */
+@utility page-title {
+  @apply text-3xl font-bold tracking-tighter text-slate-900 md:text-4xl lg:text-5xl;
+}
