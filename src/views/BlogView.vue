@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import BlogCard from '@/components/BlogCard.vue'
-import { postsData } from '@/utils/posts'
+import { onMounted } from 'vue'
+import { loadPosts, postsData } from '@/utils/posts'
+
+onMounted(loadPosts)
 </script>
 
 <template>

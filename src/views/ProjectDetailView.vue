@@ -220,7 +220,7 @@ const selectedScreenshot = ref<string | null>(null)
 
 const project = computed(() => {
   const slug = route.params.slug
-  return projectsData.find((item) => item.slug === slug)
+  return projectsData.value.find((item) => item.slug === slug)
 })
 
 const goBack = () => {

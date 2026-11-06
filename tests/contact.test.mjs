@@ -1,24 +1,25 @@
 import { test, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
-import { onRequest } from '../functions/api/contact.ts'
+import { handleContactRequest } from '../api/contact-core.ts'
 
 const realFetch = globalThis.fetch
 afterEach(() => { globalThis.fetch = realFetch })
-const env = { TELEGRAM_BOT_TOKEN: 'test-only', TELEGRAM_CHAT_ID: 'test-chat', TURNSTILE_SECRET_KEY: 'test-secret' }
+const secret = 'test-secret'
 const valid = { action: 'message', name: '<b>Name</b>', contact: '@example', type: 'Техническая задача', message: 'Hello', token: 'test-token' }
-const invoke = (body = valid, options = {}) => onRequest({
-  request: new Request('https://portfolio.example/api/contact', {
-    method: 'POST',
-    headers: { Origin: 'https://portfolio.example', 'Content-Type': 'application/json', ...options.headers },
-    body: JSON.stringify(body),
-  }), env: options.env ?? env,
-})
+const url = 'https://portfolio.example/api/contact'
+const headers = { Origin: 'https://portfolio.example', 'Content-Type': 'application/json' }
+const unexpectedEnqueue = () => assert.fail('Must not enqueue')
+const invoke = (body = valid, options = {}) => handleContactRequest(new Request(url, {
+  method: 'POST',
+  headers: { ...headers, ...options.headers },
+  body: JSON.stringify(body),
+}), options.secret ?? secret, options.enqueue ?? unexpectedEnqueue)
 const verify = { success: true, hostname: 'portfolio.example', action: 'message' }
 
 test('rejects cross-origin requests, missing secrets and invalid fields before external calls', async () => {
   globalThis.fetch = () => { throw new Error('Must not fetch') }
   assert.equal((await invoke(valid, { headers: { Origin: 'https://other.example' } })).status, 403)
-  assert.equal((await invoke(valid, { env: {} })).status, 503)
+  assert.equal((await invoke(valid, { secret: '' })).status, 503)
   for (const body of [null, [], {}, { ...valid, token: '' }, { ...valid, message: ' ' }, { ...valid, name: 42 }, { ...valid, message: 'a'.repeat(3001) }, { ...valid, type: 'unknown' }]) {
     assert.equal((await invoke(body)).status, 400)
   }
@@ -26,55 +27,52 @@ test('rejects cross-origin requests, missing secrets and invalid fields before e
 })
 
 test('rejects wrong methods, content types and malformed JSON', async () => {
-  assert.equal((await onRequest({ request: new Request('https://portfolio.example/api/contact'), env })).status, 405)
+  assert.equal((await handleContactRequest(new Request(url), secret, unexpectedEnqueue)).status, 405)
   assert.equal((await invoke(valid, { headers: { 'Content-Type': 'text/plain' } })).status, 415)
-  const request = new Request('https://portfolio.example/api/contact', { method: 'POST', headers: { Origin: 'https://portfolio.example', 'Content-Type': 'application/json' }, body: '{' })
-  assert.equal((await onRequest({ request, env })).status, 400)
+  const request = new Request(url, { method: 'POST', headers, body: '{' })
+  assert.equal((await handleContactRequest(request, secret, unexpectedEnqueue)).status, 400)
 })
 
 test('requires successful Turnstile with matching hostname and action', async () => {
   for (const result of [{ success: false }, { ...verify, hostname: 'other.example' }, { ...verify, action: 'subscribe' }]) {
-    let calls = 0
-    globalThis.fetch = async () => { calls++; return Response.json(result) }
+    globalThis.fetch = async () => Response.json(result)
     assert.equal((await invoke()).status, 403)
-    assert.equal(calls, 1)
   }
 })
 
-test('sends validated text using server credentials without HTML parsing', async () => {
+test('queues a validated form without the Turnstile token or a Telegram request', async () => {
   const calls = []
+  const queued = []
   globalThis.fetch = async (url, init) => {
     calls.push({ url, data: JSON.parse(init.body) })
-    return Response.json(calls.length === 1 ? verify : { ok: true })
+    return Response.json(verify)
   }
-  const response = await invoke()
-  assert.equal(response.status, 200)
+  const response = await invoke(valid, { enqueue: (submission) => queued.push(submission) })
+  assert.equal(response.status, 202)
   assert.equal(response.headers.get('Cache-Control'), 'no-store')
-  assert.equal(calls[0].data.secret, env.TURNSTILE_SECRET_KEY)
-  assert.equal(calls[1].data.chat_id, env.TELEGRAM_CHAT_ID)
-  assert.ok(calls[1].data.text.includes('<b>Name</b>'))
-  assert.equal(calls[1].data.parse_mode, undefined)
+  assert.deepEqual(calls, [{
+    url: 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    data: { secret, response: valid.token },
+  }])
+  const { token, ...submission } = valid
+  assert.deepEqual(queued, [submission])
 })
 
-test('supports subscription requests', async () => {
-  let calls = 0
-  globalThis.fetch = async (_url, init) => {
-    calls++
-    if (calls === 1) return Response.json({ ...verify, action: 'subscribe' })
-    assert.match(JSON.parse(init.body).text, /@subscriber/)
-    return Response.json({ ok: true })
-  }
-  assert.equal((await invoke({ action: 'subscribe', contact: '@subscriber', token: 'test-token' })).status, 200)
+test('queues subscription requests', async () => {
+  globalThis.fetch = async () => Response.json({ ...verify, action: 'subscribe' })
+  const queued = []
+  const response = await invoke({ action: 'subscribe', contact: ' @subscriber ', token: 'test-token' },
+    { enqueue: (submission) => queued.push(submission) })
+  assert.equal(response.status, 202)
+  assert.deepEqual(queued, [{ action: 'subscribe', contact: '@subscriber' }])
 })
 
-test('handles Telegram errors and network failures without leaking credentials', async () => {
-  for (const status of [200, 429, 500]) {
-    let calls = 0
-    globalThis.fetch = async () => ++calls === 1 ? Response.json(verify) : Response.json({ ok: false, description: 'private upstream error' }, { status })
-    const response = await invoke()
-    assert.equal(response.status, 502)
-    assert.doesNotMatch(await response.text(), /test-only|private upstream/)
-  }
-  globalThis.fetch = async () => { throw new Error('private upstream error') }
+test('does not claim acceptance if validation or storage fails', async () => {
+  const fail = () => { throw new Error('private failure') }
+  globalThis.fetch = fail
   assert.equal((await invoke()).status, 502)
+  globalThis.fetch = async () => Response.json(verify)
+  const response = await invoke(valid, { enqueue: fail })
+  assert.equal(response.status, 502)
+  assert.doesNotMatch(await response.text(), /private failure/)
 })

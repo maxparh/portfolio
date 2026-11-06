@@ -71,10 +71,10 @@ const processCommand = (rawInput: string) => {
       const flag = args[0]?.toLowerCase()
 
       if (!flag || flag === '-a') {
-        listProjects(projectsData, true)
+        listProjects(projectsData.value, true)
       } else if (flag === '-p') {
         const query = args.slice(1).join(' ').toLowerCase()
-        const found = query ? projectsData.find((p) => p.title.toLowerCase().includes(query)) : undefined
+        const found = query ? projectsData.value.find((p) => p.title.toLowerCase().includes(query)) : undefined
         if (found) {
           addToHistory(`Найдено: ${projectLink(found)} — ${escapeHtml(found.description)}`)
         } else {
@@ -83,7 +83,7 @@ const processCommand = (rawInput: string) => {
       } else {
         // Фильтр по типу (-py, -vue...)
         const typeKey = flag.replace('-', '')
-        const filtered = projectsData.filter((p) => p.type === typeKey)
+        const filtered = projectsData.value.filter((p) => p.type === typeKey)
         if (filtered.length > 0) {
           listProjects(filtered)
         } else {
@@ -95,7 +95,7 @@ const processCommand = (rawInput: string) => {
 
     case 'open': {
       const slug = args[0]
-      if (projectsData.some((p) => p.slug === slug)) {
+      if (projectsData.value.some((p) => p.slug === slug)) {
         addToHistory(`<span class="text-green-400">Переход к ${escapeHtml(slug ?? '')}...</span>`)
         void router.push({ name: 'project-detail', params: { slug } })
       } else {

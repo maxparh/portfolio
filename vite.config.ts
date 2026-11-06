@@ -10,6 +10,7 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    proxy: { '/api': 'http://127.0.0.1:3000' },
   },
   preview: {
     host: true,
@@ -21,7 +22,7 @@ export default defineConfig({
     },
   },
   build: {
-    // Статика, которую раздаёт Node-сервер на VPS (server/index.ts).
+    // Статика для контейнера frontend.
     outDir: 'dist',
     emptyOutDir: true,
   },

@@ -1,20 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
 import { useLikedPosts } from '@/composables/useLikedPosts'
 import type { Post } from '@/utils/posts'
 
 const props = defineProps<{ post: Post }>()
 
-const { likedIds, toggleLike } = useLikedPosts()
-const justLiked = ref(false)
-
-const isLiked = computed(() => likedIds.value.includes(props.post.id))
-// Базовое число лайков из JSON не меняется; в localStorage хранится только отметка «лайкнуто».
-const localLikes = computed(() => props.post.likes + (isLiked.value ? 1 : 0))
-
-const onToggleLike = () => {
-  justLiked.value = toggleLike(props.post.id)
-}
+const { count, liked, busy, error, toggleLike } = useLikedPosts(props.post.id)
 </script>
 
 <template>
@@ -39,17 +29,21 @@ const onToggleLike = () => {
     
     <div class="flex justify-between items-center mt-6 text-slate-400 text-xs font-mono border-t border-slate-200/60 pt-4 px-1">
       <button 
-        @click="onToggleLike"
+        @click="toggleLike"
+        :disabled="busy"
+        :aria-pressed="liked"
+        aria-label="Лайк"
         class="flex items-center gap-2 transition-colors duration-200 group"
-        :class="isLiked ? 'text-rose-500' : 'hover:text-[#63CDDA]'"
+        :class="liked ? 'text-rose-500' : 'hover:text-[#63CDDA]'"
       >
-        <span class="text-lg" :class="{ 'font-bold animate-bounce-short': justLiked }">
-          {{ isLiked ? '▲' : '^' }}
+        <span class="text-lg" :class="{ 'font-bold animate-bounce-short': liked }">
+          {{ liked ? '▲' : '^' }}
         </span> 
-        <span class="group-hover:underline">{{ localLikes }}</span>
+        <span class="group-hover:underline">{{ count ?? '—' }}</span>
       </button>
       <span class="opacity-60">{{ post.date }}</span>
     </div>
+    <p v-if="error" role="status" class="mt-2 text-xs text-slate-600">{{ error }}</p>
   </div>
 </template>
 

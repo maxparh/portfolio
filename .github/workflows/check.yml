@@ -19,7 +19,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
-      - name: Type check (Vue + API + Node server)
+      - name: Type check (Vue and Node API)
         run: npm run type-check
       - name: Tests (contact handler)
         run: npm test

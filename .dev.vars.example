@@ -1,6 +1,0 @@
-# Секреты для локальной разработки Cloudflare Pages Functions (`npm run dev`).
-# Скопируйте файл в .dev.vars и заполните значениями из Cloudflare.
-# .dev.vars не отслеживается Git.
-TELEGRAM_BOT_TOKEN="replace-with-telegram-bot-token"
-TELEGRAM_CHAT_ID="replace-with-telegram-chat-id"
-TURNSTILE_SECRET_KEY="replace-with-turnstile-secret-key"

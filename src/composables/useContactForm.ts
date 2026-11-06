@@ -1,5 +1,3 @@
-import { ref } from 'vue'
-
 export interface ContactPayload {
   action: 'message' | 'subscribe'
   token: string
@@ -7,8 +5,7 @@ export interface ContactPayload {
 }
 
 /**
- * Отправка данных формы на серверную функцию `/api/contact` (Cloudflare Pages Function).
- * Секреты (Telegram-токен, Turnstile secret) живут только на сервере.
+ * Передаёт форму в `/api/contact` для проверки и записи в очередь.
  */
 export function useContactForm() {
   const submitContact = async (data: ContactPayload): Promise<void> => {

@@ -1,32 +1,34 @@
-# Образ сайта-портфолио: сборка Vite → минимальный рантайм на Node.js.
-#
-# В рантайме только Node.js и собранные файлы:
-#   dist/        — статика frontend
-#   dist-server/ — сервер, обслуживающий статику и POST /api/contact
-# Vue компилируется в статику, поэтому node_modules в финальном образе не нужны.
-
 FROM node:24-alpine AS build
 WORKDIR /app
-
 COPY package.json package-lock.json ./
 RUN npm ci --no-fund --no-audit
 
+FROM build AS frontend-build
 COPY . .
 ARG VITE_TURNSTILE_SITE_KEY
 ENV VITE_TURNSTILE_SITE_KEY=$VITE_TURNSTILE_SITE_KEY
+RUN npm run build:app
 
-# Проверка типов выполняется в CI (`npm run build`); здесь — только сборка.
-RUN npm run build:app && npm run build:server
+FROM caddy:2-alpine AS frontend
+COPY deploy/frontend.Caddyfile /etc/caddy/Caddyfile
+COPY --from=frontend-build /app/dist /srv
 
-FROM node:24-alpine
+FROM build AS database-build
+COPY tsconfig.server.json ./
+COPY api/ api/
+COPY server/ server/
+RUN npm run build:server
+
+FROM node:24-alpine AS database
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOST=0.0.0.0
-
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/dist-server ./dist-server
-
-EXPOSE 3000
-USER node
+COPY package.json ./
+COPY src/utils/projects.json src/utils/posts.json ./src/utils/
+COPY --from=database-build /app/dist-server ./dist-server
 CMD ["node", "dist-server/server/index.js"]
+
+FROM python:3.13-alpine AS form-worker
+WORKDIR /app
+COPY server/form_worker.py ./
+USER nobody
+CMD ["python", "-u", "form_worker.py"]

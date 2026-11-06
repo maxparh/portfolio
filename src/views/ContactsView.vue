@@ -37,7 +37,7 @@ const sendMessage = async () => {
   isSending.value = true
   try {
     await submitContact({ ...form.value, action: 'message', token: messageToken.value })
-    alert('Сообщение успешно отправлено!')
+    alert('Сообщение принято!')
     form.value = emptyMessage()
   } catch (error) {
     alert(error instanceof Error ? error.message : 'Ошибка при отправке.')
@@ -52,7 +52,7 @@ const handleSubscribe = async () => {
   isSubscribing.value = true
   try {
     await submitContact({ action: 'subscribe', contact: subscribeContact.value, token: subscribeToken.value })
-    alert('Запрос на подписку отправлен!')
+    alert('Запрос на подписку принят!')
     subscribeContact.value = ''
   } catch (error) {
     alert(error instanceof Error ? error.message : 'Не удалось отправить запрос.')

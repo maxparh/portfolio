@@ -7,6 +7,12 @@ node_modules/
 dist/
 dist-server/
 dist-ssr/
+/data/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+__pycache__/
 *.local
 
 # --- Тесты и покрытие ---

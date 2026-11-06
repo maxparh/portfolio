@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { projectsData } from '@/utils/projects'
+import AdminPanel from '@/components/AdminPanel.vue'
 </script>
 
 <template>
@@ -24,7 +25,8 @@ import { projectsData } from '@/utils/projects'
       >
         <div class="flex justify-center mb-6">
           <div class="w-20 h-20 rounded-3xl bg-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-500 overflow-hidden border border-slate-100">
-            <img :src="project.logo" :alt="project.title" class="w-full h-full object-cover p-[16px] rounded-3xl" />
+            <img v-if="project.logo" :src="project.logo" :alt="project.title" class="w-full h-full object-cover p-[16px] rounded-3xl" />
+            <span v-else aria-hidden="true" class="font-mono text-xl font-bold text-slate-600">{{ project.title.slice(0, 2).toUpperCase() }}</span>
           </div>
         </div>
 
@@ -47,5 +49,6 @@ import { projectsData } from '@/utils/projects'
         <RouterLink :to="{ name: 'project-detail', params: { slug: project.slug } }" class="absolute inset-0 rounded-[2.5rem] z-10"></RouterLink>
       </div>
     </div>
+    <AdminPanel />
   </div>
 </template>

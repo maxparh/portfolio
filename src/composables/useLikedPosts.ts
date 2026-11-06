@@ -1,37 +1,82 @@
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
-const STORAGE_KEY = 'liked_posts'
+const legacyKey = 'liked_posts'
+let visitorReady: Promise<void> | undefined
 
-const readLiked = (): number[] => {
+function ensureVisitor() {
+  const initialize = async () => {
+    const response = await fetch('/api/visitor', { signal: AbortSignal.timeout(5000) })
+    if (!response.ok) throw new Error('Не удалось определить посетителя.')
+  }
+  const initializeOnce = async () => {
+    if (navigator.locks) await navigator.locks.request('portfolio-visitor', initialize)
+    else await initialize()
+  }
+  visitorReady ??= initializeOnce().catch((error) => {
+    visitorReady = undefined
+    throw error
+  })
+  return visitorReady
+}
+
+function legacyLikes(): number[] {
   try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-    return Array.isArray(parsed) ? parsed.filter((id): id is number => typeof id === 'number') : []
+    const ids: unknown = JSON.parse(localStorage.getItem(legacyKey) ?? '[]')
+    return Array.isArray(ids) ? ids.filter((id) => Number.isInteger(id)) : []
   } catch {
-    // Повреждённые данные в localStorage не должны ломать страницу.
     return []
   }
 }
 
-const writeLiked = (ids: number[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
-  } catch {
-    // Хранилище может быть недоступно (приватный режим) — лайк остаётся в памяти.
+export function useLikedPosts(id: number) {
+  const count = ref<number | null>(null)
+  const liked = ref(false)
+  const busy = ref(false)
+  const error = ref('')
+
+  async function request(method: 'GET' | 'PUT' | 'DELETE') {
+    await ensureVisitor()
+    const response = await fetch(`/api/posts/${id}/like`, {
+      method,
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!response.ok) {
+      throw new Error(response.status === 400 ? 'Для лайков нужны cookie.' : 'Лайки временно недоступны.')
+    }
+    const result: { count: number; liked: boolean } = await response.json()
+    count.value = result.count
+    liked.value = result.liked
   }
-}
 
-/** Лайки постов блога: состояние хранится в localStorage. */
-export function useLikedPosts() {
-  const likedIds = ref<number[]>(readLiked())
-
-  const isLiked = (id: number) => likedIds.value.includes(id)
-
-  const toggleLike = (id: number): boolean => {
-    const liked = !isLiked(id)
-    likedIds.value = liked ? [...likedIds.value, id] : likedIds.value.filter((item) => item !== id)
-    writeLiked(likedIds.value)
-    return liked
+  async function migrateLegacyLike() {
+    if (!legacyLikes().includes(id)) return
+    await request('PUT')
+    try {
+      const remaining = legacyLikes().filter((item) => item !== id)
+      if (remaining.length) localStorage.setItem(legacyKey, JSON.stringify(remaining))
+      else localStorage.removeItem(legacyKey)
+    } catch {
+      // PUT is idempotent if the old browser storage could not be cleared.
+    }
   }
 
-  return { likedIds, isLiked, toggleLike }
+  async function sync(toggle: boolean) {
+    if (busy.value) return
+    busy.value = true
+    error.value = ''
+    try {
+      await migrateLegacyLike()
+      if (count.value === null) await request('GET')
+      if (toggle) await request(liked.value ? 'DELETE' : 'PUT')
+    } catch (cause) {
+      error.value = cause instanceof Error && cause.message === 'Для лайков нужны cookie.'
+        ? cause.message : 'Лайки временно недоступны.'
+      count.value = null
+    } finally {
+      busy.value = false
+    }
+  }
+
+  onMounted(() => void sync(false))
+  return { count, liked, busy, error, toggleLike: () => sync(true) }
 }
